@@ -1,3 +1,13 @@
-import * as cls from './class';
+import j from 'jscodeshift';
+import fs from 'fs';
 
-export default { class: cls };
+const source = `
+@d.class.path('dd')
+class test {
+  @d.number.max(1)
+  private tt: number = 1;
+}
+`;
+
+const jcs = j.withParser('ts')(source);
+console.log(jcs);
