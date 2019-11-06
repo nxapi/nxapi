@@ -1,7 +1,7 @@
 {
-  "name": "decorator",
+  "name": "dsl-koa",
   "version": "0.0.1",
-  "description": "decorator",
+  "description": "dsl-koa",
   "main": "src/index.js",
   "files": [
     "index.js",
@@ -14,7 +14,5 @@
   "keywords": [],
   "author": "pengxiang",
   "license": "MIT",
-  "dependencies": {
-    "xapi-search-code": "0.0.2"
-  }
+  "dependencies": {}
 }

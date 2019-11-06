@@ -8,4 +8,12 @@ export default class Ast {
     const source = fs.readFileSync(fullPath, 'utf8');
     this.jcs = j.withParser(parser)(source);
   }
+
+  isController() {
+    let isCtl = false;
+    this.jcs.find(j.ClassDeclaration).forEach(p => {
+      if (p.node.superClass && p.node.superClass['name'] === 'BaseController') isCtl = true;
+    });
+    return isCtl;
+  }
 }

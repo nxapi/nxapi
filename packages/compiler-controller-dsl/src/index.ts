@@ -1,13 +1,15 @@
-import j from 'jscodeshift';
-import fs from 'fs';
+import Controller from './controller';
+import scanner from './scanner';
+import { IController } from './dsl';
 
-const source = `
-@d.class.path('dd')
-class test {
-  @d.number.max(1)
-  private tt: number = 1;
-}
-`;
-
-const jcs = j.withParser('ts')(source);
-console.log(jcs);
+export declare type IController = IController;
+export const compiler = (relativePath: string) => {
+  const fullPaths = scanner(relativePath);
+  const dsls: IController[] = [];
+  fullPaths.forEach(p => {
+    const ctl = new Controller(p);
+    const dsl = ctl.convertToDsl();
+    dsls.push(dsl);
+  });
+  return dsls;
+};

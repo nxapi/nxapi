@@ -6,4 +6,8 @@ export default class Any {
   description(desc: string) {
     return Reflect.metadata(null, null);
   }
+
+  example(val: any) {
+    return Reflect.metadata(null, null);
+  }
 }

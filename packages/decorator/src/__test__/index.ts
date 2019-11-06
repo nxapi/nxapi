@@ -1,4 +1,4 @@
-import d from './index';
+import d from '../index';
 
 class ReqData1 {
   dddd: string;
@@ -12,7 +12,6 @@ class ReqData {
 }
 
 @d.class.path('dd')
-@d.class.controller()
 class Test {
   @d.number.max(1)
   @d.number.description('ddd')
@@ -20,7 +19,7 @@ class Test {
   @d.object.description('ddd')
   reqData: ReqData;
 
-  @d.function.path('ddd')
+  @d.function.get('ddd')
   public ggg(req: ReqData): ReqData1 {
     return new ReqData1();
   }

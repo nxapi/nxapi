@@ -24,7 +24,8 @@
   },
   "dependencies": {
     "cross-env": "^5.2.0",
-    "reflect-metadata": "^0.1.13"
+    "reflect-metadata": "^0.1.13",
+    "xapi-search-code": "0.0.8"
   },
   "devDependencies": {
     "@types/jscodeshift": "^0.6.3",
