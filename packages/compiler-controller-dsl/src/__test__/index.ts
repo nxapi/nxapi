@@ -1,4 +1,4 @@
 import { compiler, IController } from '../';
 
-const dsls = compiler('packages');
+const dsls: IController[] = compiler('packages');
 console.log(dsls);
