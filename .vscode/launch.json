@@ -13,14 +13,14 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "启动-compiler",
+      "name": "启动-compiler-controller-dsl",
       "program": "${workspaceFolder}/dist/compiler-controller-dsl/src/__test__/index.js"
     },
     {
       "type": "node",
       "request": "launch",
-      "name": "启动-dsl-koa",
-      "program": "${workspaceFolder}/dist/dsl-koa/src/__test__/index.js"
+      "name": "启动-controller-dsl-koa",
+      "program": "${workspaceFolder}/dist/controller-dsl-koa/src/__test__/index.js"
     }
   ]
 }

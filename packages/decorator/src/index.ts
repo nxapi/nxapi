@@ -14,4 +14,6 @@ const obj = new CObject();
 const str = new CString();
 const b = new CBool();
 
-export default { class: cls, number: num, function: fun, array: arr, object: obj, string: str, bool: b };
+const d = { class: cls, number: num, function: fun, array: arr, object: obj, string: str, bool: b };
+
+export default d;

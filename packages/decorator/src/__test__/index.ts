@@ -14,9 +14,9 @@ class ReqData {
 @d.class.path('dd')
 class Test {
   @d.number.max(1)
-  @d.number.description('ddd')
+  @d.number.desc('ddd')
   private tt: number = 1;
-  @d.object.description('ddd')
+  @d.object.desc('ddd')
   reqData: ReqData;
 
   @d.function.get('ddd')

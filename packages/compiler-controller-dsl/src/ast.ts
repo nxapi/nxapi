@@ -11,9 +11,12 @@ export default class Ast {
 
   isController() {
     let isCtl = false;
-    this.jcs.find(j.ClassDeclaration).forEach(p => {
-      if (p.node.superClass && p.node.superClass['name'] === 'BaseController') isCtl = true;
-    });
+    this.jcs
+      .find(j.ExportDefaultDeclaration)
+      .find(j.ClassDeclaration)
+      .forEach(p => {
+        if (p.node.superClass && p.node.superClass['name'] === 'BaseController') isCtl = true;
+      });
     return isCtl;
   }
 }

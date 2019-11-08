@@ -1,5 +1,5 @@
 export default class Function {
-  description(desc: string) {
+  desc(desc: string) {
     return function(target: any, propertyKey: string, descriptor: PropertyDescriptor) {};
   }
   get(path: string) {

@@ -1,4 +1,4 @@
-import d from '../../../../decorator/src/index';
+import d from '../../../packages/decorator/src/index';
 
 export default class TestDto {
   @d.number.max(1)

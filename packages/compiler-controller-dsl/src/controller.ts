@@ -34,19 +34,19 @@ export default class Controller {
     const classMethodJcs = classJcs.find(j.ClassMethod);
     const classMethodNodes = classMethodJcs.nodes();
     classMethodNodes.forEach(n => {
-      const cmDsl: IClassMethod = {};
+      const classMethodDsl: IClassMethod = {};
+      classMethodDsl.classMethodName = n.key['name'];
       const decoratorDsl = Decorator.convertToDsl(n.decorators);
-      //有path的才是一个接口
-      if (!decoratorDsl.path) return;
-      cmDsl.path = decoratorDsl.path;
-      cmDsl.method = cmDsl.path.method.split('.')[1];
-      cmDsl.desc = decoratorDsl.desc;
+      //有get|post|put...的才是一个接口
+      // if (!decoratorDsl.get && !decoratorDsl.post && !decoratorDsl.put && !decoratorDsl.delete) return;
+      // cmDsl.path = decoratorDsl.path;
+      // cmDsl.method = cmDsl.path.method.split('.')[1];
+      Object.assign(classMethodDsl, decoratorDsl);
       const reqDtoDsl = ReqDto.convertToDsl(n, this.component.getHeapMap());
-      cmDsl.req = reqDtoDsl.req;
-      cmDsl.dto = reqDtoDsl.dto;
-      dsl.classMethods.push(cmDsl);
+      classMethodDsl.req = reqDtoDsl.req;
+      classMethodDsl.dto = reqDtoDsl.dto;
+      dsl.classMethods.push(classMethodDsl);
     });
     return dsl;
-    console.log(classMethodJcs);
   }
 }

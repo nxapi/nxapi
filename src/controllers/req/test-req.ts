@@ -1,4 +1,4 @@
-import d from '../../../../decorator/src/index';
+import d from '../../../packages/decorator/src/index';
 import HelloReq from './hello-req';
 
 export default class TestReq {
