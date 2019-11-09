@@ -38,6 +38,7 @@ export interface IField {
   example?: string;
   name?: string; //字段名称
   type?: string;
+  arrayTemplateType?: string;
   typeDeclare?: IReqDto;
   required?: boolean;
   pattern?: string;

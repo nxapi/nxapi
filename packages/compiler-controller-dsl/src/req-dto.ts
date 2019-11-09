@@ -1,4 +1,4 @@
-import j, { ClassMethod, TSTypeAnnotation, TypeAnnotation, TSTypePredicate } from 'jscodeshift';
+import j, { ClassMethod, TSTypeAnnotation, TypeAnnotation, TSTypePredicate, ClassProperty } from 'jscodeshift';
 import { IReqDto, IField } from './dsl';
 import { IComponent } from 'xapi-search-code';
 import Decorator from './decorator';
@@ -23,6 +23,7 @@ export default class ReqDto {
     dtoDsl: IReqDto,
     heapMap: Map<string, any>
   ) {
+    if (!returnType) return;
     const n = { typeAnnotation: returnType };
     const nodeType = this.getNodeType(n);
     //req为自定义对象
@@ -48,7 +49,19 @@ export default class ReqDto {
       const field: IField = {};
       field.name = n.key['name'];
       field.type = this.getNodeType(n);
-      if (!this.isBaseType(field.type)) {
+      if (this.isArrayType(field.type)) {
+        field.arrayTemplateType = this.getNodeType(
+          this.constructorTypeAnnotation(n.typeAnnotation.typeAnnotation['elementType'])
+        );
+        if (!this.isBaseType(field.arrayTemplateType)) {
+          field.typeDeclare = {};
+          this.dealObject(
+            this.constructorTypeAnnotation(n.typeAnnotation.typeAnnotation['elementType']),
+            field.typeDeclare,
+            reqComponent.getHeapMap()
+          );
+        }
+      } else if (!this.isBaseType(field.type)) {
         field.typeDeclare = {};
         this.dealObject(n, field.typeDeclare, reqComponent.getHeapMap());
       }
@@ -58,9 +71,30 @@ export default class ReqDto {
     });
   }
 
+  private static constructorTypeAnnotation(typeAnnotation: any) {
+    return {
+      typeAnnotation: { typeAnnotation },
+    };
+  }
+
+  private static dealField(classProperty: ClassProperty, reqComponent: IComponent) {
+    const field: IField = {};
+    field.name = classProperty.key['name'];
+    field.type = this.getNodeType(classProperty);
+    if (this.isArrayType(field.type)) {
+    } else if (!this.isBaseType(field.type)) {
+      field.typeDeclare = {};
+      this.dealObject(classProperty, field.typeDeclare, reqComponent.getHeapMap());
+    }
+    return field;
+  }
+
   private static getNodeType(n: any) {
     let nodeType: string = n.typeAnnotation.typeAnnotation.type;
-    if (nodeType !== 'TSTypeReference') {
+    if (nodeType === 'TSArrayType') {
+      return 'array';
+    } else if (nodeType !== 'TSTypeReference') {
+      //基础类型
       nodeType = nodeType
         .replace('TS', '')
         .replace('Keyword', '')
@@ -72,7 +106,10 @@ export default class ReqDto {
   }
 
   private static isBaseType(typeName: string) {
-    const types = ['number', 'string', 'boolean', 'object', 'array', 'any'];
+    const types = ['number', 'string', 'boolean', 'object', 'any'];
     return types.includes(typeName);
+  }
+  private static isArrayType(typeName: string) {
+    return typeName === 'array';
   }
 }
