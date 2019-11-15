@@ -23,6 +23,7 @@
     "copy-static-assets": "ts-node copyStaticAssets.ts"
   },
   "dependencies": {
+    "@hapi/joi": "^15.1.1",
     "cross-env": "^5.2.0",
     "reflect-metadata": "^0.1.13",
     "xapi-search-code": "0.0.8"

@@ -7,8 +7,8 @@ import d from '../../packages/decorator/src';
 export default class TestController extends BaseController {
   @d.function.description('ddd')
   @d.function.get('/hello')
-  public ggg(req: TestReq): TestDto {
-    return new TestDto();
+  public ggg(req: TestReq): number[] {
+    return [3];
   }
   @d.function.post('post')
   public hhh(req: TestReq): TestDto {

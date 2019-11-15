@@ -24,11 +24,18 @@ export default class ReqDto {
     heapMap: Map<string, any>
   ) {
     if (!returnType) return;
-    const n = { typeAnnotation: returnType };
-    const nodeType = this.getNodeType(n);
-    //req为自定义对象
+    let n: any = { typeAnnotation: returnType };
+    let nodeType = this.getNodeType(n);
+    dtoDsl.isArray = nodeType === 'array';
+    if (this.isArrayType(nodeType)) {
+      n = { typeAnnotation: { typeAnnotation: returnType.typeAnnotation['elementType'] } };
+      nodeType = this.getNodeType(n);
+    }
+    //dto为自定义对象
     if (!this.isBaseType(nodeType)) {
       this.dealObject(n, dtoDsl, heapMap);
+    } else {
+      dtoDsl.type = nodeType;
     }
   }
 
@@ -37,7 +44,7 @@ export default class ReqDto {
     const paramTypeName = param.typeAnnotation.typeAnnotation.typeName.name;
     const reqComponent: IComponent = heapMap.get(paramTypeName).ownerComponent;
     dsl.fileFullPath = reqComponent.getFullPath();
-    dsl.className = paramTypeName;
+    dsl.type = paramTypeName;
     const classJcs = reqComponent.getJCS().find(j.ClassDeclaration);
     if (classJcs.length > 1) {
       console.error(dsl.fileFullPath + '文件中不能包含多个类');
@@ -49,11 +56,11 @@ export default class ReqDto {
       const field: IField = {};
       field.name = n.key['name'];
       field.type = this.getNodeType(n);
-      if (this.isArrayType(field.type)) {
-        field.arrayTemplateType = this.getNodeType(
-          this.constructorTypeAnnotation(n.typeAnnotation.typeAnnotation['elementType'])
-        );
-        if (!this.isBaseType(field.arrayTemplateType)) {
+      field.isArray = this.isArrayType(field.type);
+      if (field.isArray) {
+        field.type = this.getNodeType(this.constructorTypeAnnotation(n.typeAnnotation.typeAnnotation['elementType']));
+        if (!this.isBaseType(field.type)) {
+          //自定义对象
           field.typeDeclare = {};
           this.dealObject(
             this.constructorTypeAnnotation(n.typeAnnotation.typeAnnotation['elementType']),
@@ -62,6 +69,7 @@ export default class ReqDto {
           );
         }
       } else if (!this.isBaseType(field.type)) {
+        //自定义对象
         field.typeDeclare = {};
         this.dealObject(n, field.typeDeclare, reqComponent.getHeapMap());
       }
@@ -75,18 +83,6 @@ export default class ReqDto {
     return {
       typeAnnotation: { typeAnnotation },
     };
-  }
-
-  private static dealField(classProperty: ClassProperty, reqComponent: IComponent) {
-    const field: IField = {};
-    field.name = classProperty.key['name'];
-    field.type = this.getNodeType(classProperty);
-    if (this.isArrayType(field.type)) {
-    } else if (!this.isBaseType(field.type)) {
-      field.typeDeclare = {};
-      this.dealObject(classProperty, field.typeDeclare, reqComponent.getHeapMap());
-    }
-    return field;
   }
 
   private static getNodeType(n: any) {
@@ -106,7 +102,7 @@ export default class ReqDto {
   }
 
   private static isBaseType(typeName: string) {
-    const types = ['number', 'string', 'boolean', 'object', 'any'];
+    const types = ['number', 'string', 'boolean', 'object', 'Object', 'any'];
     return types.includes(typeName);
   }
   private static isArrayType(typeName: string) {

@@ -2,8 +2,9 @@ import { compiler, IController } from '../../compiler-controller-dsl/src';
 import path from 'path';
 import fs from 'fs';
 import IRoute from './route';
+import hashcode from './hash';
 
-const httpMethods = ['get', 'post', 'put', 'delete'];
+const httpMethods = ['get', 'post', 'put', 'delete', 'option'];
 
 const getReqData = (httpMethod: string) => {
   if (httpMethod === 'get') {
