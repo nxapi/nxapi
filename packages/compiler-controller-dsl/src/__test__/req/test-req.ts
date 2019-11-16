@@ -6,7 +6,7 @@ export default class TestReq {
   hello: HelloReq;
 
   @d.number.max(1)
-  @d.number.desc('ddd')
+  @d.number.description('ddd')
   @d.number.example(1)
   tt: number;
   mmm: string;

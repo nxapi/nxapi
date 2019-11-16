@@ -1,11 +1,3 @@
-// interface IStringString {
-//   method: string;
-//   val: string;
-// }
-// interface IStringNumber {
-//   method: string;
-//   val: number;
-// }
 export interface IController {
   fileFullPath?: string;
   className?: string;
@@ -28,8 +20,8 @@ export interface IClassMethod {
 
 export interface IReqDto {
   fileFullPath?: string;
-  className?: string;
-  // desc?: IStringString;
+  type?: string;
+  isArray?: boolean;
   fields?: IField[];
 }
 
@@ -38,6 +30,8 @@ export interface IField {
   example?: string;
   name?: string; //字段名称
   type?: string;
+  isArray?: boolean;
+  // arrayTemplateType?: string;
   typeDeclare?: IReqDto;
   required?: boolean;
   pattern?: string;

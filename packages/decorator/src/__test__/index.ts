@@ -11,12 +11,12 @@ class ReqData {
   reqData1: ReqData1;
 }
 
-@d.class.path('dd')
+@d.controller.path('dd')
 class Test {
   @d.number.max(1)
-  @d.number.desc('ddd')
+  @d.number.description('ddd')
   private tt: number = 1;
-  @d.object.desc('ddd')
+  @d.object.description('ddd')
   reqData: ReqData;
 
   @d.function.get('ddd')

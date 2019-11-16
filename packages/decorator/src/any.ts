@@ -3,7 +3,7 @@ export default class Any {
   required() {
     return Reflect.metadata(null, null);
   }
-  desc(desc: string) {
+  description(desc: string) {
     return Reflect.metadata(null, null);
   }
 

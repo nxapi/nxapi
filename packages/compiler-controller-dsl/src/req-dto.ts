@@ -1,4 +1,4 @@
-import j, { ClassMethod, TSTypeAnnotation, TypeAnnotation, TSTypePredicate } from 'jscodeshift';
+import j, { ClassMethod, TSTypeAnnotation, TypeAnnotation, TSTypePredicate, ClassProperty } from 'jscodeshift';
 import { IReqDto, IField } from './dsl';
 import { IComponent } from 'xapi-search-code';
 import Decorator from './decorator';
@@ -23,11 +23,19 @@ export default class ReqDto {
     dtoDsl: IReqDto,
     heapMap: Map<string, any>
   ) {
-    const n = { typeAnnotation: returnType };
-    const nodeType = this.getNodeType(n);
-    //req为自定义对象
+    if (!returnType) return;
+    let n: any = { typeAnnotation: returnType };
+    let nodeType = this.getNodeType(n);
+    dtoDsl.isArray = nodeType === 'array';
+    if (this.isArrayType(nodeType)) {
+      n = { typeAnnotation: { typeAnnotation: returnType.typeAnnotation['elementType'] } };
+      nodeType = this.getNodeType(n);
+    }
+    //dto为自定义对象
     if (!this.isBaseType(nodeType)) {
       this.dealObject(n, dtoDsl, heapMap);
+    } else {
+      dtoDsl.type = nodeType;
     }
   }
 
@@ -36,7 +44,7 @@ export default class ReqDto {
     const paramTypeName = param.typeAnnotation.typeAnnotation.typeName.name;
     const reqComponent: IComponent = heapMap.get(paramTypeName).ownerComponent;
     dsl.fileFullPath = reqComponent.getFullPath();
-    dsl.className = paramTypeName;
+    dsl.type = paramTypeName;
     const classJcs = reqComponent.getJCS().find(j.ClassDeclaration);
     if (classJcs.length > 1) {
       console.error(dsl.fileFullPath + '文件中不能包含多个类');
@@ -48,7 +56,20 @@ export default class ReqDto {
       const field: IField = {};
       field.name = n.key['name'];
       field.type = this.getNodeType(n);
-      if (!this.isBaseType(field.type)) {
+      field.isArray = this.isArrayType(field.type);
+      if (field.isArray) {
+        field.type = this.getNodeType(this.constructorTypeAnnotation(n.typeAnnotation.typeAnnotation['elementType']));
+        if (!this.isBaseType(field.type)) {
+          //自定义对象
+          field.typeDeclare = {};
+          this.dealObject(
+            this.constructorTypeAnnotation(n.typeAnnotation.typeAnnotation['elementType']),
+            field.typeDeclare,
+            reqComponent.getHeapMap()
+          );
+        }
+      } else if (!this.isBaseType(field.type)) {
+        //自定义对象
         field.typeDeclare = {};
         this.dealObject(n, field.typeDeclare, reqComponent.getHeapMap());
       }
@@ -58,9 +79,18 @@ export default class ReqDto {
     });
   }
 
+  private static constructorTypeAnnotation(typeAnnotation: any) {
+    return {
+      typeAnnotation: { typeAnnotation },
+    };
+  }
+
   private static getNodeType(n: any) {
     let nodeType: string = n.typeAnnotation.typeAnnotation.type;
-    if (nodeType !== 'TSTypeReference') {
+    if (nodeType === 'TSArrayType') {
+      return 'array';
+    } else if (nodeType !== 'TSTypeReference') {
+      //基础类型
       nodeType = nodeType
         .replace('TS', '')
         .replace('Keyword', '')
@@ -72,7 +102,10 @@ export default class ReqDto {
   }
 
   private static isBaseType(typeName: string) {
-    const types = ['number', 'string', 'boolean', 'object', 'array', 'any'];
+    const types = ['number', 'string', 'boolean', 'object', 'Object', 'any'];
     return types.includes(typeName);
+  }
+  private static isArrayType(typeName: string) {
+    return typeName === 'array';
   }
 }

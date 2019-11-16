@@ -1,4 +1,4 @@
-export default class Class {
+export default class Controller {
   path(path: string) {
     return function(target: Function) {};
   }
