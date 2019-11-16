@@ -1,11 +1,10 @@
 import Controller from './controller';
 import scanner from './scanner';
-import { IController, IReqDto, IField } from './dsl';
+import { IController as AIController, IReqDto as AIReqDto, IField as AIField } from './dsl';
 
-export declare type IController = IController;
-export declare type IReqDto = IReqDto;
-
-export declare type IField = IField;
+export declare type IController = AIController;
+export declare type IReqDto = AIReqDto;
+export declare type IField = AIField;
 export const compiler = (relativePath: string) => {
   const fullPaths = scanner(relativePath);
   const dsls: IController[] = [];

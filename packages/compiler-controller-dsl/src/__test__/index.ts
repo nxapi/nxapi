@@ -1,4 +1,5 @@
 import { compiler, IController } from '../';
-
-const dsls: IController[] = compiler('packages');
-console.log(dsls);
+import path from 'path';
+const controllerPath = path.join('src', 'controllers');
+const controllerDsls: IController[] = compiler(controllerPath);
+console.log(controllerDsls);

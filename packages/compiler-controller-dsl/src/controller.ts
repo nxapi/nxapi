@@ -1,4 +1,4 @@
-import { Page, IComponent } from 'xapi-search-code';
+import { Page, IComponent } from '@nxapi/search-code';
 import j from 'jscodeshift';
 import { IController, IClassMethod } from './dsl';
 import Decorator from './decorator';

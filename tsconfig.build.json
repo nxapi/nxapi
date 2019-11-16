@@ -5,20 +5,22 @@
     "esModuleInterop": true,
     "target": "es6",
     "noImplicitAny": true,
+    "declaration": true, // 生成 `.d.ts` 文件
     "suppressImplicitAnyIndexErrors": true,
     "moduleResolution": "node",
-    "sourceMap": true,
-    "allowJs": true,
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
       "*": [
         "node_modules/*",
-        "packages/types/*"
+        "src/types/*"
       ]
     }
   },
   "include": [
     "packages/**/*"
+  ],
+  "exclude": [
+    "packages/**/__test__"
   ]
 }

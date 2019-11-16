@@ -1,5 +1,6 @@
 import path from 'path';
 import { IReqDto, IController } from '../../../packages/compiler-controller-dsl/src';
+import { httpMethods } from '../../utils';
 
 export interface IRoute {
   path?: string;
@@ -11,7 +12,7 @@ export interface IRoute {
 }
 
 export const extractRoutes = (controllerDsls: IController[]) => {
-  const httpMethods = ['get', 'post', 'put', 'delete', 'option'];
+
   const routes: IRoute[] = [];
   controllerDsls.forEach(ctrl => {
     ctrl.classMethods.forEach(method => {

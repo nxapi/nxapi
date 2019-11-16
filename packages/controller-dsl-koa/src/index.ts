@@ -1,10 +1,7 @@
-import { compiler, IController } from '../../compiler-controller-dsl/src';
+import { IController } from '../../compiler-controller-dsl/src';
 import path from 'path';
 import fs from 'fs';
-import IRoute from './route';
-import hashcode from './hash';
-
-const httpMethods = ['get', 'post', 'put', 'delete', 'option'];
+import IRoute, { extractRoutes } from './route';
 
 const getReqData = (httpMethod: string) => {
   if (httpMethod === 'get') {
@@ -16,24 +13,6 @@ const getReqData = (httpMethod: string) => {
 
 const firstLowerCase = (name: string) => {
   return name.replace(name[0], name[0].toLowerCase());
-};
-
-const extractRoutes = (controllerDsls: IController[]) => {
-  const routes: IRoute[] = [];
-  controllerDsls.forEach(ctrl => {
-    ctrl.classMethods.forEach(method => {
-      httpMethods.forEach(hm => {
-        if (!method[hm]) return;
-        const route: IRoute = {};
-        route.path = path.join('/', ctrl.path, method[hm]);
-        route.httpMethod = hm;
-        route.className = ctrl.className;
-        route.classMethodName = method.classMethodName;
-        routes.push(route);
-      });
-    });
-  });
-  return routes;
 };
 
 const convertToKoa = (controllerDsls: IController[], routes: IRoute[]) => {
@@ -72,12 +51,16 @@ const saveKoa = (content: string, savePath: string) => {
   }
   fs.writeFileSync(path.resolve(targetPath, 'routes.js'), content, 'utf8');
 };
-
-export default (rootRelativePath: string, controllerRelativePath: string, tmpRelativePath: string) => {
-  const controllerPath = path.join(rootRelativePath, controllerRelativePath);
-  const tmpPath = path.join(rootRelativePath, tmpRelativePath);
-  const controllerDsls = compiler(controllerPath);
+export default (controllerDsls: IController[], tmpRelativePath: string) => {
   const routes = extractRoutes(controllerDsls);
   const output = convertToKoa(controllerDsls, routes);
-  saveKoa(output, tmpPath);
+  saveKoa(output, tmpRelativePath);
 };
+// export default (rootRelativePath: string, controllerRelativePath: string, tmpRelativePath: string) => {
+//   const controllerPath = path.join(rootRelativePath, controllerRelativePath);
+//   const tmpPath = path.join(rootRelativePath, tmpRelativePath);
+//   const controllerDsls = compiler(controllerPath);
+//   const routes = extractRoutes(controllerDsls);
+//   const output = convertToKoa(controllerDsls, routes);
+//   saveKoa(output, tmpPath);
+// };

@@ -1,12 +1,12 @@
 import { IRoute } from './route';
-import hashcode from './hash';
 import { IReqDto, IField } from '../../../packages/compiler-controller-dsl/src';
 import JoiKeys from './joi-keys';
+import hashCode from '../../utils/hash-code';
 
 export const convertJoi = (route: IRoute) => {
   const joi = {};
   joi['path'] = route.path;
-  joi['code'] = hashcode(route.httpMethod + route.path);
+  joi['code'] = hashCode(route.httpMethod + route.path);
   joi['request'] = dealReqDto(route.req);
   joi['response'] = dealReqDto(route.dto);
   // route.req.

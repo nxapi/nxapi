@@ -1,13 +1,17 @@
 {
-  "name": "xapi",
-  "version": "0.1.1",
-  "description": "xapi",
+  "name": "@nxapi/nxapi",
+  "version": "0.0.2",
+  "description": "@nxapi/nxapi",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pengxiang-git/xapi"
+    "url": "https://github.com/nxapi/nxapi"
   },
   "author": "pengxiang",
   "license": "MIT",
+  "main": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
   "pre-commit": [
     "tslint"
   ],
@@ -15,25 +19,25 @@
     "start": "cross-env NODE_ENV=production node dist/app.js",
     "build": "npm run build-ts && npm run tslint",
     "watch": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run watch-node\"",
-    "watch-ts": "tsc -w",
+    "watch-ts": "rm -rf ./dist && tsc -w",
     "watch-node": "cross-env NODE_ENV=dev nodemon dist/app.js",
-    "build-ts": "tsc",
+    "build-ts": "rm -rf ./dist && tsc -p tsconfig.build.json",
     "tslint": "tslint -c tslint.json -p tsconfig.json",
     "tslint:fix": "tslint --fix -c tslint.json -p tsconfig.json",
     "copy-static-assets": "ts-node copyStaticAssets.ts"
   },
   "dependencies": {
     "@hapi/joi": "^15.1.1",
+    "@nxapi/search-code": "^0.0.3",
     "cross-env": "^5.2.0",
     "reflect-metadata": "^0.1.13",
-    "xapi-search-code": "0.0.8"
+    "jscodeshift": "^0.6.4"
   },
   "devDependencies": {
     "@types/jscodeshift": "^0.6.3",
     "@types/node": "^9.4.6",
     "@types/shelljs": "^0.7.8",
     "concurrently": "^3.5.1",
-    "jscodeshift": "^0.6.4",
     "nodemon": "^1.19.4",
     "pre-commit": "^1.2.2",
     "shelljs": "^0.8.1",
