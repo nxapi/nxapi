@@ -4,6 +4,6 @@ import { relativeCtrlPath, plugins, relativeOutputPath } from './config';
 export default () => {
   const ctrlDsls = compilerCtrlToDsl(relativeCtrlPath);
   plugins.forEach((plugin: any) => {
-    plugin(ctrlDsls, relativeOutputPath);
+    require(plugin).default(ctrlDsls, relativeOutputPath);
   });
 };
