@@ -6,7 +6,7 @@ import d from '../../packages/decorator/src';
 @d.controller.path('/v1')
 export default class TestController extends BaseController {
   @d.function.description('ddd')
-  @d.function.get('/hello')
+  @d.function.get('/hello88')
   public ggg(req: TestReq): number[] {
     return [3];
   }

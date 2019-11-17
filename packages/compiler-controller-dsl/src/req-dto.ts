@@ -1,6 +1,6 @@
 import j, { ClassMethod, TSTypeAnnotation, TypeAnnotation, TSTypePredicate, ClassProperty } from 'jscodeshift';
 import { IReqDto, IField } from './dsl';
-import { IComponent } from '@nxapi/search-code';
+import { IComponent } from '@nxapi/nxapi-search-code';
 import Decorator from './decorator';
 
 export default class ReqDto {

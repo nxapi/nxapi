@@ -1,6 +1,6 @@
 {
   "name": "@nxapi/nxapi",
-  "version": "0.0.2",
+  "version": "0.0.8",
   "description": "@nxapi/nxapi",
   "repository": {
     "type": "git",
@@ -12,26 +12,25 @@
   "files": [
     "dist"
   ],
+  "bin": {
+    "nxapi": "dist/bin/index.js"
+  },
   "pre-commit": [
     "tslint"
   ],
   "scripts": {
-    "start": "cross-env NODE_ENV=production node dist/app.js",
     "build": "npm run build-ts && npm run tslint",
-    "watch": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"npm run watch-ts\" \"npm run watch-node\"",
     "watch-ts": "rm -rf ./dist && tsc -w",
-    "watch-node": "cross-env NODE_ENV=dev nodemon dist/app.js",
     "build-ts": "rm -rf ./dist && tsc -p tsconfig.build.json",
     "tslint": "tslint -c tslint.json -p tsconfig.json",
-    "tslint:fix": "tslint --fix -c tslint.json -p tsconfig.json",
-    "copy-static-assets": "ts-node copyStaticAssets.ts"
+    "tslint:fix": "tslint --fix -c tslint.json -p tsconfig.json"
   },
   "dependencies": {
     "@hapi/joi": "^15.1.1",
-    "@nxapi/search-code": "^0.0.3",
-    "cross-env": "^5.2.0",
-    "reflect-metadata": "^0.1.13",
-    "jscodeshift": "^0.6.4"
+    "@nxapi/nxapi-search-code": "^0.0.4",
+    "chokidar": "^3.3.0",
+    "jscodeshift": "^0.6.4",
+    "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
     "@types/jscodeshift": "^0.6.3",

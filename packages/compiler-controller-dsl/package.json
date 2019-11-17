@@ -14,7 +14,5 @@
   "keywords": [],
   "author": "pengxiang",
   "license": "MIT",
-  "dependencies": {
-    "xapi-search-code": "0.0.2"
-  }
+  "dependencies": {}
 }
