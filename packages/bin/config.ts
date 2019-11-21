@@ -2,7 +2,7 @@ import path from 'path';
 
 let nxapirc;
 try {
-  nxapirc = require(path.resolve(process.cwd(), '.nxapirc'));
+  nxapirc = global['nxapirc'] || require(path.resolve(process.cwd(), '.nxapirc'));
 } catch (e) {
   nxapirc = {};
 }

@@ -10,13 +10,24 @@ export default class Ast {
   }
 
   isController() {
-    let isCtl = false;
+    let isCtrl = false;
     this.jcs
       .find(j.ExportDefaultDeclaration)
       .find(j.ClassDeclaration)
       .forEach(p => {
-        if (p.node.superClass && p.node.superClass['name'] === 'BaseController') isCtl = true;
+        if (p.node.superClass && p.node.superClass['name'] === 'BaseController') isCtrl = true;
       });
-    return isCtl;
+    return isCtrl;
+  }
+
+  isService() {
+    let isSrv = false;
+    this.jcs
+      .find(j.ExportDefaultDeclaration)
+      .find(j.ClassDeclaration)
+      .forEach(p => {
+        if (p.node.superClass && p.node.superClass['name'] === 'BaseService') isSrv = true;
+      });
+    return isSrv;
   }
 }
