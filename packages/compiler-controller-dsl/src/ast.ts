@@ -1,4 +1,4 @@
-import j from 'jscodeshift';
+import j, { ASTNode } from 'jscodeshift';
 import fs from 'fs';
 import { Collection } from 'jscodeshift/src/Collection';
 
@@ -29,5 +29,9 @@ export default class Ast {
         if (p.node.superClass && p.node.superClass['name'] === 'BaseService') isSrv = true;
       });
     return isSrv;
+  }
+
+  static astNodeToSource(node: ASTNode) {
+    return j(node).toSource();
   }
 }

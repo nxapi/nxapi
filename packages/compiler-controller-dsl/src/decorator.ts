@@ -1,4 +1,5 @@
 import { DecoratorKind } from 'ast-types/gen/kinds';
+import Ast from './ast';
 
 export default class Decorator {
   // private static getFirstArg(key: string, args: any[]) {
@@ -74,12 +75,18 @@ export default class Decorator {
   }
 
   private static getValue(args: any[]) {
-    if (args.length === 1) return args[0].value;
+    if (args.length === 1) return Ast.astNodeToSource(args[0]);
     else if (args.length > 1) {
       const vals: any[] = [];
-      args.forEach(a => vals.push(a.value));
+      args.forEach(a => vals.push(Ast.astNodeToSource(a)));
       return vals;
     }
     return true;
   }
+  // private static dealValue(v: any) {
+  //   return Ast.astNodeToSource(v);
+  //   // if (v.type === 'RegExpLiteral') return Ast.astNodeToSource(v);
+  //   // else if (v.type === 'ArrowFunctionExpression' || v.type === 'ObjectExpression') return Ast.astNodeToSource(v);
+  //   // else return v.value;
+  // }
 }
