@@ -19,18 +19,6 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "启动-controller-dsl-koa",
-      "program": "${workspaceFolder}/dist/controller-dsl-koa/src/__test__/index.js"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "启动-controller-dsl-joi",
-      "program": "${workspaceFolder}/dist/controller-dsl-joi/src/__test__/index.js"
-    },
-    {
-      "type": "node",
-      "request": "launch",
       "name": "启动-bin",
       "program": "${workspaceFolder}/dist/bin/__test__/index.js"
     }
