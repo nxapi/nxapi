@@ -1,5 +1,4 @@
 import { compiler, IController, IReqDto, IField } from './compiler-controller-dsl/src';
-import controllerDslJoi from './controller-dsl-joi/src';
 import decorator from './decorator/src';
 import hashcode from './utils/hash-code';
 import { httpMethods as httpMethods2 } from './utils';
@@ -10,7 +9,6 @@ export declare type DSLReqDto = IReqDto;
 export declare type DSLField = IField;
 export const compilerCtrlToDsl = compiler;
 
-export const dslToJoi = controllerDslJoi;
 export const d = decorator;
 export const hashCode = hashcode;
 export const httpMethods = httpMethods2;
