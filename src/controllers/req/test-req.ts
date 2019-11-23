@@ -11,6 +11,7 @@ export default class TestReq {
   // @d.number.max(1)
   // @d.number.description('ddd')
   // tt: number;
+
   @d.string.email({ dd: 88 })
   @d.string.regex(/^[abc]+$/)
   @d.string.allow('aa', 'bb')

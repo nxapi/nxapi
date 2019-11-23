@@ -1,6 +1,6 @@
 import Any from './any';
 
-export default class Array extends Any<Array> {
+export default class Array extends Any {
   max(val: number) {
     return Reflect.metadata(null, null);
   }

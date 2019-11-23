@@ -1,4 +1,4 @@
-import j, { ASTNode } from 'jscodeshift';
+import j from 'jscodeshift';
 import fs from 'fs';
 import { Collection } from 'jscodeshift/src/Collection';
 
@@ -31,7 +31,7 @@ export default class Ast {
     return isSrv;
   }
 
-  static astNodeToSource(node: ASTNode) {
-    return j(node).toSource();
+  static astNodeToSource(astNode: any) {
+    return j(astNode).toSource();
   }
 }

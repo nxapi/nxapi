@@ -1,6 +1,6 @@
 import Any from './any';
 
-export default class CObject extends Any<object> {
+export default class CObject extends Any {
   min(val: number) {
     return Reflect.metadata(null, null);
   }
