@@ -2,42 +2,6 @@ import { DecoratorKind } from 'ast-types/gen/kinds';
 import Ast from './ast';
 
 export default class Decorator {
-  // private static getFirstArg(key: string, args: any[]) {
-  //   return { [key]: args[0].value || args[0] };
-  // }
-  // private static getMultiArg(key: string, args: any[]) {
-  //   const vals: any[] = [];
-  //   args.forEach(a => vals.push(a.value));
-  //   return { [key]: vals };
-  // }
-  // private static anyType = {
-  //   description: (args: any[]) => Decorator.getFirstArg('desc', args),
-  //   required: (args: any[]) => Decorator.getFirstArg('required', [true]),
-  //   example: (args: any[]) => Decorator.getFirstArg('example', args),
-  // };
-  // private static convertArgToDsl = {
-  //   class: {
-  //     path: (args: any[]) => Decorator.getFirstArg('path', args),
-  //   },
-  //   function: {
-  //     get: (args: any[]) => Decorator.getFirstArg('path', args),
-  //     post: (args: any[]) => Decorator.getFirstArg('path', args),
-  //     delete: (args: any[]) => Decorator.getFirstArg('path', args),
-  //     put: (args: any[]) => Decorator.getFirstArg('path', args),
-  //     description: (args: any[]) => Decorator.getFirstArg('desc', args),
-  //   },
-  //   array: {
-  //     ...Decorator.anyType,
-  //   },
-  //   bool: { ...Decorator.anyType },
-  //   number: {
-  //     max: (args: any[]) => Decorator.getFirstArg('max', args),
-  //     ...Decorator.anyType,
-  //   },
-  //   object: { ...Decorator.anyType },
-  //   string: { ...Decorator.anyType },
-  // };
-
   public static convertToDsl(ds: DecoratorKind[]) {
     if (!ds) return null;
     const decoratorArr: any = [];

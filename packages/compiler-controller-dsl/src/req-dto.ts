@@ -5,18 +5,34 @@ import Decorator from './decorator';
 
 export default class ReqDto {
   public static convertToDsl(cm: ClassMethod, heapMap: Map<string, any>) {
-    const reqDsl: IReqDto = {};
+    const reqDsl: IReqDto = { fields: [] };
     const dtoDsl: IReqDto = {};
-    cm.params.length > 0 && this.dealReq(cm.params[0], reqDsl, heapMap);
+    this.dealReq(cm.params, reqDsl, heapMap);
     this.dealDto(cm.returnType, dtoDsl, heapMap);
     return { req: reqDsl, dto: dtoDsl };
   }
-  private static dealReq(param: any, reqDsl: IReqDto, heapMap: Map<string, any>) {
-    const paramType = this.getNodeType(param);
-    //req为自定义对象
-    if (!this.isBaseType(paramType)) {
-      this.dealObject(param, reqDsl, heapMap);
+  private static dealReq(params: any[], reqDsl: IReqDto, heapMap: Map<string, any>) {
+    if (params.length === 1) {
+      const param = params[0];
+      const paramType = this.getNodeType(param);
+      if (this.isArrayType(paramType) || this.isBaseType(paramType)) {
+        reqDsl.type = 'params';
+        this.dealField(param, reqDsl, heapMap);
+      } else {
+        this.dealObject(param, reqDsl, heapMap);
+      }
+    } else if (params.length > 1) {
+      reqDsl.type = 'params';
+      params.forEach(param => {
+        this.dealField(param, reqDsl, heapMap);
+      });
     }
+
+    // const paramType = this.getNodeType(param);
+    // //req为自定义对象
+    // if (!this.isBaseType(paramType)) {
+    //   this.dealObject(param, reqDsl, heapMap);
+    // }
   }
   private static dealDto(
     returnType: TypeAnnotation | TSTypeAnnotation | TSTypePredicate,
@@ -26,8 +42,8 @@ export default class ReqDto {
     if (!returnType) return;
     let n: any = { typeAnnotation: returnType };
     let nodeType = this.getNodeType(n);
-    dtoDsl.isArray = nodeType === 'array';
-    if (this.isArrayType(nodeType)) {
+    dtoDsl.isArray = this.isArrayType(nodeType);
+    if (dtoDsl.isArray) {
       n = { typeAnnotation: { typeAnnotation: returnType.typeAnnotation['elementType'] } };
       nodeType = this.getNodeType(n);
     }
@@ -53,30 +69,34 @@ export default class ReqDto {
     //对象属性处理
     const classPropertyNodes = classJcs.find(j.ClassProperty).nodes();
     classPropertyNodes.forEach(n => {
-      const field: IField = {};
-      field.name = n.key['name'];
-      field.type = this.getNodeType(n);
-      field.isArray = this.isArrayType(field.type);
-      if (field.isArray) {
-        field.type = this.getNodeType(this.constructorTypeAnnotation(n.typeAnnotation.typeAnnotation['elementType']));
-        if (!this.isBaseType(field.type)) {
-          //自定义对象
-          field.typeDeclare = {};
-          this.dealObject(
-            this.constructorTypeAnnotation(n.typeAnnotation.typeAnnotation['elementType']),
-            field.typeDeclare,
-            reqComponent.getHeapMap()
-          );
-        }
-      } else if (!this.isBaseType(field.type)) {
+      this.dealField(n, dsl, reqComponent.getHeapMap());
+    });
+  }
+
+  private static dealField(node: any, dsl: IReqDto, heapMap: Map<string, any>) {
+    const field: IField = {};
+    field.name = node.key ? node.key['name'] : node.name;
+    field.type = this.getNodeType(node);
+    field.isArray = this.isArrayType(field.type);
+    if (field.isArray) {
+      field.type = this.getNodeType(this.constructorTypeAnnotation(node.typeAnnotation.typeAnnotation['elementType']));
+      if (!this.isBaseType(field.type)) {
         //自定义对象
         field.typeDeclare = {};
-        this.dealObject(n, field.typeDeclare, reqComponent.getHeapMap());
+        this.dealObject(
+          this.constructorTypeAnnotation(node.typeAnnotation.typeAnnotation['elementType']),
+          field.typeDeclare,
+          heapMap
+        );
       }
-      const decoratorDsl = Decorator.convertToDsl(n['decorators']);
-      if (decoratorDsl) Object.assign(field, decoratorDsl);
-      dsl.fields.push(field);
-    });
+    } else if (!this.isBaseType(field.type)) {
+      //自定义对象
+      field.typeDeclare = {};
+      this.dealObject(node, field.typeDeclare, heapMap);
+    }
+    const decoratorDsl = Decorator.convertToDsl(node['decorators']);
+    if (decoratorDsl) Object.assign(field, decoratorDsl);
+    dsl.fields.push(field);
   }
 
   private static constructorTypeAnnotation(typeAnnotation: any) {

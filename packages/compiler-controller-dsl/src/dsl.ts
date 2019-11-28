@@ -6,10 +6,8 @@ export interface IController {
 }
 
 export interface IClassMethod {
-  // path?: IStringString;
   classMethodName?: string;
-  desc?: string;
-  // method?: string; //get|post...
+  description?: string;
   get?: string;
   post?: string;
   put?: string;
@@ -26,12 +24,11 @@ export interface IReqDto {
 }
 
 export interface IField {
-  desc?: string;
+  description?: string;
   example?: string;
   name?: string; //字段名称
   type?: string;
   isArray?: boolean;
-  // arrayTemplateType?: string;
   typeDeclare?: IReqDto;
   required?: boolean;
   pattern?: string;
