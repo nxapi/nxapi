@@ -8,11 +8,11 @@ import BaseResponse from './dto/base-response';
 export default class TestController extends BaseController {
   @d.function.description('ddd')
   @d.function.get('/hello88')
-  public ggg(req: number, aa: TestReq[]): TestDto[] {
+  public ggg(req: number): BaseResponse<TestDto> {
     return 'aa' as any;
   }
-  @d.function.post('post')
-  public hhh(req: TestReq): TestDto {
-    return new TestDto();
-  }
+  // @d.function.post('post')
+  // public hhh(req: TestReq): TestDto {
+  //   return new TestDto();
+  // }
 }

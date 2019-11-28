@@ -1,5 +1,16 @@
 import d from '../index';
 
+class Req<T> {
+  dddd: T;
+
+  constructor() {}
+}
+class Page<T> {
+  dddd: T;
+
+  constructor() {}
+}
+
 class ReqData1 {
   dddd: string;
 }
@@ -20,14 +31,14 @@ class Test {
   reqData: ReqData;
 
   @d.function.get('ddd')
-  public ggg(req: ReqData): ReqData1 {
-    return new ReqData1();
+  public ggg(): Req<Page<number[]>> {
+    return 1 as any;
   }
 }
 
 class Test2 {}
 
-console.log(new Test());
+console.log(new Test().ggg().dddd);
 console.log(new Test2());
 
 console.log(new Test2());
