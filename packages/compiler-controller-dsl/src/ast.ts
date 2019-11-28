@@ -34,4 +34,9 @@ export default class Ast {
   static astNodeToSource(astNode: any) {
     return j(astNode).toSource();
   }
+  static astNodeToJcs(astNode: any) {
+    // return j.withParser('ts')(astNode);
+    // console.log(j(astNode).toSource());
+    return j.withParser('ts')(j(astNode).toSource());
+  }
 }

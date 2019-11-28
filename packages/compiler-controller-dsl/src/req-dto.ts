@@ -2,6 +2,7 @@ import j, { ClassMethod, TSTypeAnnotation, TypeAnnotation, TSTypePredicate, Clas
 import { IReqDto, IField } from './dsl';
 import { IComponent } from '@nxapi/nxapi-search-code';
 import Decorator from './decorator';
+import Ast from './ast';
 
 export default class ReqDto {
   public static convertToDsl(cm: ClassMethod, heapMap: Map<string, any>) {
@@ -63,20 +64,22 @@ export default class ReqDto {
   ) {
     dsl.fields = [];
     const nodeTypeName = node.typeAnnotation.typeAnnotation.typeName.name;
-    const typeParameters = node.typeAnnotation.typeAnnotation.typeParameters;
     const mapVal = heapMap.get(nodeTypeName) || templateMap.get(nodeTypeName);
     const ownerComponent: IComponent = mapVal.ownerComponent;
     dsl.fileFullPath = ownerComponent.getFullPath();
     dsl.type = nodeTypeName;
-    const classJcs = ownerComponent.getJCS().find(j.ClassDeclaration);
-    if (classJcs.length > 1) {
-      console.error(dsl.fileFullPath + '文件中不能包含多个类');
-      return;
-    }
-    const templateNodes = classJcs.find(j.TSTypeParameterDeclaration).nodes();
-    templateMap = this.getTemplateMap(typeParameters, (templateNodes as any)[0], heapMap, templateMap);
+    // const classJcs2 = ownerComponent.getJCS().find(j.ClassDeclaration);
+    // if (classJcs.length > 1) {
+    //   console.error(dsl.fileFullPath + '文件中不能包含多个类');
+    //   return;
+    // }
+    const declareJcs = Ast.astNodeToJcs(mapVal.exportNode);
+    const classDeclareJcs = declareJcs.find(j.ClassDeclaration);
+    const declareTemplate = classDeclareJcs.find(j.TSTypeParameterDeclaration).nodes();
+    const refTempate = node.typeAnnotation.typeAnnotation.typeParameters;
+    templateMap = this.getTemplateMap(refTempate, declareTemplate[0], heapMap, templateMap);
     //对象属性处理
-    const classPropertyNodes = classJcs.find(j.ClassProperty).nodes();
+    const classPropertyNodes = classDeclareJcs.find(j.ClassProperty).nodes();
     classPropertyNodes.forEach(n => {
       this.dealField(n, dsl, ownerComponent.getHeapMap(), templateMap);
     });
@@ -91,7 +94,8 @@ export default class ReqDto {
     const field: IField = {};
     field.name = node.key ? node.key['name'] : node.name;
     field.type = this.getNodeType(node);
-    if (templateMap.get(field.type)) {
+    const tmpMapVal = templateMap.get(field.type);
+    if (tmpMapVal && tmpMapVal.isTemplate) {
       node = templateMap.get(field.type);
       field.type = this.getNodeType(node);
     }
@@ -125,40 +129,84 @@ export default class ReqDto {
     parentTemplateMap: Map<string, any>
   ) {
     const retTemplateMap = new Map();
+    const refTmpArr = [];
     if (!refTempate || !declareTemplate) return retTemplateMap;
     if (refTempate.params.length !== declareTemplate.params.length) return retTemplateMap;
     for (let i = 0; i < declareTemplate.params.length; ++i) {
-      const refTmp = refTempate.params[i];
+      let refTmp = refTempate.params[i];
       const declareTmp = declareTemplate.params[i];
-      const typeAnnotation = this.constructorTypeAnnotation(refTmp);
+      //refTmp是模板类型 {a: Test<T>} ,refTmp为T
+      //class Test<T>{}
+
+      if (this.isArrayType(this.getNodeType(this.constructorTypeAnnotation(refTmp)))) {
+        const refTempVal = parentTemplateMap.get(refTmp.elementType.typeName.name);
+        if (refTempVal && refTempVal.isTemplate) {
+          refTmp = Object.assign({}, refTmp, { elementType: refTempVal.typeAnnotation.typeAnnotation });
+        }
+      } else {
+        const refTempVal = parentTemplateMap.get(refTmp.typeName.name);
+        if (refTempVal && refTempVal.isTemplate) {
+          refTmp = refTempVal.typeAnnotation.typeAnnotation;
+        }
+      }
+      const typeAnnotation = this.constructorTypeAnnotation(refTmp, true);
       retTemplateMap.set(declareTmp.name, typeAnnotation);
-      const tmpTypeNames = this.getLoopTypeNames(refTmp);
-      tmpTypeNames.forEach(name => {
-        retTemplateMap.set(name, heapMap.get(name) || parentTemplateMap.get(name));
-      });
+      refTmpArr.push(refTmp);
+      this.makeUpRelativeType(refTmp, retTemplateMap, heapMap, parentTemplateMap);
+      // const tmpTypeNames = this.getRelativeTypeNames(refTmp);
+      // tmpTypeNames.forEach(name => {
+      //   const relativeTypeAnnotation = heapMap.get(name) || parentTemplateMap.get(name);
+      //   retTemplateMap.set(name, relativeTypeAnnotation);
+      //   // tmpArr.push(relativeTypeAnnotation);
+      // });
     }
+    // for (let i = 0; i < tmpArr.length; ++i) {
+    //   if (!tmpArr[i].isTemplate) continue;
+
+    // }
+    // retTemplateMap.forEach((v, k) => {
+
+    // });
+    // for (let i = 0; i < refTmpArr.length; ++i) {
+    //   this.makeUpRelativeType(refTmpArr[i], retTemplateMap, heapMap, parentTemplateMap);
+    // }
+
     return retTemplateMap;
   }
 
-  private static getLoopTypeNames(node: any) {
+  private static makeUpRelativeType(refTmp: any, retTemplateMap: Map<string, any>, heapMap: Map<string, any>,
+    parentTemplateMap: Map<string, any>) {
+    const tmpTypeNames = this.getRelativeTypeNames(refTmp);
+    tmpTypeNames.forEach(name => {
+      const relativeTypeAnnotation = heapMap.get(name) || parentTemplateMap.get(name);
+      if (!relativeTypeAnnotation) return;
+      retTemplateMap.set(name, relativeTypeAnnotation);
+      if (relativeTypeAnnotation.isTemplate) {
+        this.makeUpRelativeType(relativeTypeAnnotation.typeAnnotation.typeAnnotation, retTemplateMap, heapMap, parentTemplateMap);
+
+      } else {
+        retTemplateMap.set(name, relativeTypeAnnotation);
+      }
+
+    });
+  }
+
+  private static getRelativeTypeNames(node: any) {
     const nodeType = this.getNodeType(this.constructorTypeAnnotation(node));
     if (this.isArrayType(nodeType)) node = node.elementType;
     const names = [];
     names.push(node.typeName.name);
     if (!node.typeParameters) return names;
     node.typeParameters.params.forEach((item: any) => {
-      names.push(...this.getLoopTypeNames(item));
+      names.push(...this.getRelativeTypeNames(item));
     });
     return names;
   }
 
-  private static isTemplate(node: any, templateMap: Map<string, any>) {
-    return templateMap.get(this.getNodeType(node)) ? true : false;
-  }
-
-  private static constructorTypeAnnotation(typeAnnotation: any) {
+  private static constructorTypeAnnotation(typeAnnotation: any, isTemplate: boolean = false) {
     return {
       typeAnnotation: { typeAnnotation },
+      isTemplate
     };
   }
 
