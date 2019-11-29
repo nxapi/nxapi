@@ -1,5 +1,5 @@
-export default class TestTemp<K> {
+export default class TestTemp<T> {
   // code: string;
   // msg: string;
-  dataTest: K;
+  dataTest: T;
 }

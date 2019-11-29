@@ -28,12 +28,6 @@ export default class ReqDto {
         this.dealField(param, reqDsl, heapMap);
       });
     }
-
-    // const paramType = this.getNodeType(param);
-    // //req为自定义对象
-    // if (!this.isBaseType(paramType)) {
-    //   this.dealObject(param, reqDsl, heapMap);
-    // }
   }
   private static dealDto(
     returnType: TypeAnnotation | TSTypeAnnotation | TSTypePredicate,
@@ -55,7 +49,6 @@ export default class ReqDto {
       dtoDsl.type = nodeType;
     }
   }
-
   private static dealObject(
     node: any,
     dsl: IReqDto,
@@ -63,20 +56,21 @@ export default class ReqDto {
     templateMap: Map<string, any> = new Map()
   ) {
     dsl.fields = [];
-    const nodeTypeName = node.typeAnnotation.typeAnnotation.typeName.name;
-    const mapVal = heapMap.get(nodeTypeName) || templateMap.get(nodeTypeName);
-    const ownerComponent: IComponent = mapVal.ownerComponent;
+    const typeName = node.typeAnnotation.typeAnnotation.typeName.name;
+    const typeNodeInfo = heapMap.get(typeName) || templateMap.get(typeName);
+    const ownerComponent: IComponent = typeNodeInfo.ownerComponent;
     dsl.fileFullPath = ownerComponent.getFullPath();
-    dsl.type = nodeTypeName;
+    dsl.type = typeName;
     // const classJcs2 = ownerComponent.getJCS().find(j.ClassDeclaration);
     // if (classJcs.length > 1) {
     //   console.error(dsl.fileFullPath + '文件中不能包含多个类');
     //   return;
     // }
-    const declareJcs = Ast.astNodeToJcs(mapVal.exportNode);
+    const declareJcs = Ast.astNodeToJcs(typeNodeInfo.exportNode);
     const classDeclareJcs = declareJcs.find(j.ClassDeclaration);
     const declareTemplate = classDeclareJcs.find(j.TSTypeParameterDeclaration).nodes();
     const refTempate = node.typeAnnotation.typeAnnotation.typeParameters;
+    //模板类型向下传递
     templateMap = this.getTemplateMap(refTempate, declareTemplate[0], heapMap, templateMap);
     //对象属性处理
     const classPropertyNodes = classDeclareJcs.find(j.ClassProperty).nodes();
@@ -121,6 +115,46 @@ export default class ReqDto {
     if (decoratorDsl) Object.assign(field, decoratorDsl);
     dsl.fields.push(field);
   }
+  //将T替换成具体的类型
+  private static replaceTemplateByRealType(refTmp: any, parentTemplateMap: Map<string, any>) {
+    if (this.isArrayType(this.getNodeType(this.constructorTypeAnnotation(refTmp)))) {
+      const refTempVal = parentTemplateMap.get(refTmp.elementType.typeName.name);
+      if (refTempVal && refTempVal.isTemplate) {
+        Object.assign(refTmp, { elementType: refTempVal.typeAnnotation.typeAnnotation });
+      }
+      this.replaceTypeParamsTemplateByRealType(refTmp.elementType, parentTemplateMap);
+    } else {
+      const refTempVal = parentTemplateMap.get(refTmp.typeName.name);
+      if (refTempVal && refTempVal.isTemplate) {
+        Object.assign(refTmp, refTempVal.typeAnnotation.typeAnnotation);
+      }
+      this.replaceTypeParamsTemplateByRealType(refTmp, parentTemplateMap);
+    }
+  }
+  //将T替换成具体的类型--模板参数处理
+  private static replaceTypeParamsTemplateByRealType(refTmp: any, parentTemplateMap: Map<string, any>) {
+    if (!refTmp.typeParameters) return;
+    const typeParameters = Object.assign({}, refTmp.typeParameters);
+    typeParameters.params = [];
+    refTmp.typeParameters.params.forEach((n: any) => {
+      const item = Object.assign({}, n);
+      typeParameters.params.push(item);
+      if (this.isArrayType(this.getNodeType(this.constructorTypeAnnotation(n)))) {
+        const nVal = parentTemplateMap.get(n.elementType.typeName.name);
+        if (nVal && nVal.isTemplate) {
+          Object.assign(item, { elementType: nVal.typeAnnotation.typeAnnotation });
+        }
+        this.replaceTypeParamsTemplateByRealType(item.elementType, parentTemplateMap);
+      } else {
+        const nVal = parentTemplateMap.get(n.typeName.name);
+        if (nVal && nVal.isTemplate) {
+          Object.assign(item, nVal.typeAnnotation.typeAnnotation);
+        }
+        this.replaceTypeParamsTemplateByRealType(item, parentTemplateMap);
+      }
+    });
+    refTmp.typeParameters = typeParameters;
+  }
 
   private static getTemplateMap(
     refTempate: any,
@@ -129,66 +163,21 @@ export default class ReqDto {
     parentTemplateMap: Map<string, any>
   ) {
     const retTemplateMap = new Map();
-    const refTmpArr = [];
     if (!refTempate || !declareTemplate) return retTemplateMap;
     if (refTempate.params.length !== declareTemplate.params.length) return retTemplateMap;
     for (let i = 0; i < declareTemplate.params.length; ++i) {
-      let refTmp = refTempate.params[i];
+      const refTmp = Object.assign({}, refTempate.params[i]);
       const declareTmp = declareTemplate.params[i];
-      //refTmp是模板类型 {a: Test<T>} ,refTmp为T
-      //class Test<T>{}
-
-      if (this.isArrayType(this.getNodeType(this.constructorTypeAnnotation(refTmp)))) {
-        const refTempVal = parentTemplateMap.get(refTmp.elementType.typeName.name);
-        if (refTempVal && refTempVal.isTemplate) {
-          refTmp = Object.assign({}, refTmp, { elementType: refTempVal.typeAnnotation.typeAnnotation });
-        }
-      } else {
-        const refTempVal = parentTemplateMap.get(refTmp.typeName.name);
-        if (refTempVal && refTempVal.isTemplate) {
-          refTmp = refTempVal.typeAnnotation.typeAnnotation;
-        }
-      }
+      this.replaceTemplateByRealType(refTmp, parentTemplateMap);
       const typeAnnotation = this.constructorTypeAnnotation(refTmp, true);
       retTemplateMap.set(declareTmp.name, typeAnnotation);
-      refTmpArr.push(refTmp);
-      this.makeUpRelativeType(refTmp, retTemplateMap, heapMap, parentTemplateMap);
-      // const tmpTypeNames = this.getRelativeTypeNames(refTmp);
-      // tmpTypeNames.forEach(name => {
-      //   const relativeTypeAnnotation = heapMap.get(name) || parentTemplateMap.get(name);
-      //   retTemplateMap.set(name, relativeTypeAnnotation);
-      //   // tmpArr.push(relativeTypeAnnotation);
-      // });
-    }
-    // for (let i = 0; i < tmpArr.length; ++i) {
-    //   if (!tmpArr[i].isTemplate) continue;
-
-    // }
-    // retTemplateMap.forEach((v, k) => {
-
-    // });
-    // for (let i = 0; i < refTmpArr.length; ++i) {
-    //   this.makeUpRelativeType(refTmpArr[i], retTemplateMap, heapMap, parentTemplateMap);
-    // }
-
-    return retTemplateMap;
-  }
-
-  private static makeUpRelativeType(refTmp: any, retTemplateMap: Map<string, any>, heapMap: Map<string, any>,
-    parentTemplateMap: Map<string, any>) {
-    const tmpTypeNames = this.getRelativeTypeNames(refTmp);
-    tmpTypeNames.forEach(name => {
-      const relativeTypeAnnotation = heapMap.get(name) || parentTemplateMap.get(name);
-      if (!relativeTypeAnnotation) return;
-      retTemplateMap.set(name, relativeTypeAnnotation);
-      if (relativeTypeAnnotation.isTemplate) {
-        this.makeUpRelativeType(relativeTypeAnnotation.typeAnnotation.typeAnnotation, retTemplateMap, heapMap, parentTemplateMap);
-
-      } else {
+      const tmpTypeNames = this.getRelativeTypeNames(refTmp);
+      tmpTypeNames.forEach(name => {
+        const relativeTypeAnnotation = heapMap.get(name) || parentTemplateMap.get(name);
         retTemplateMap.set(name, relativeTypeAnnotation);
-      }
-
-    });
+      });
+    }
+    return retTemplateMap;
   }
 
   private static getRelativeTypeNames(node: any) {
@@ -206,7 +195,7 @@ export default class ReqDto {
   private static constructorTypeAnnotation(typeAnnotation: any, isTemplate: boolean = false) {
     return {
       typeAnnotation: { typeAnnotation },
-      isTemplate
+      isTemplate,
     };
   }
 
