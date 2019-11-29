@@ -1,7 +1,10 @@
 import d from '../../../packages/decorator/src/index';
 import HelloReq from './hello-req';
+class GGG {
+  aa: string;
+}
 
-export default class TestReq {
+export class TestReq {
   // @d.array.description('ddda')
   // @d.array.required()
   // arr: HelloReq[];
@@ -11,6 +14,7 @@ export default class TestReq {
   // @d.number.max(1)
   // @d.number.description('ddd')
   // tt: number;
+  gg: GGG;
 
   @d.string.email({ dd: 88 })
   @d.string.regex(/^[abc]+$/)
@@ -19,4 +23,10 @@ export default class TestReq {
   mmm: string;
   @d.boolean.example(true)
   b: boolean;
+}
+
+export class TestReq2 {
+  @d.array.description('ddda')
+  @d.array.required()
+  arr: HelloReq[];
 }

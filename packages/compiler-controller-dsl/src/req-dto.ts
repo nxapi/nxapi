@@ -53,19 +53,15 @@ export default class ReqDto {
     node: any,
     dsl: IReqDto,
     heapMap: Map<string, any>,
+    classMap: Map<string, any> = new Map(),
     templateMap: Map<string, any> = new Map()
   ) {
     dsl.fields = [];
     const typeName = node.typeAnnotation.typeAnnotation.typeName.name;
-    const typeNodeInfo = heapMap.get(typeName) || templateMap.get(typeName);
+    const typeNodeInfo = heapMap.get(typeName) || templateMap.get(typeName) || classMap.get(typeName);
     const ownerComponent: IComponent = typeNodeInfo.ownerComponent;
     dsl.fileFullPath = ownerComponent.getFullPath();
     dsl.type = typeName;
-    // const classJcs2 = ownerComponent.getJCS().find(j.ClassDeclaration);
-    // if (classJcs.length > 1) {
-    //   console.error(dsl.fileFullPath + '文件中不能包含多个类');
-    //   return;
-    // }
     const declareJcs = Ast.astNodeToJcs(typeNodeInfo.exportNode);
     const classDeclareJcs = declareJcs.find(j.ClassDeclaration);
     const declareTemplate = classDeclareJcs.find(j.TSTypeParameterDeclaration).nodes();
@@ -75,7 +71,7 @@ export default class ReqDto {
     //对象属性处理
     const classPropertyNodes = classDeclareJcs.find(j.ClassProperty).nodes();
     classPropertyNodes.forEach(n => {
-      this.dealField(n, dsl, ownerComponent.getHeapMap(), templateMap);
+      this.dealField(n, dsl, ownerComponent.getHeapMap(), ownerComponent.getClassMap(), templateMap);
     });
   }
 
@@ -83,6 +79,7 @@ export default class ReqDto {
     node: any,
     dsl: IReqDto,
     heapMap: Map<string, any>,
+    classMap: Map<string, any> = new Map(),
     templateMap: Map<string, any> = new Map()
   ) {
     const field: IField = {};
@@ -103,13 +100,14 @@ export default class ReqDto {
           this.constructorTypeAnnotation(node.typeAnnotation.typeAnnotation['elementType']),
           field.typeDeclare,
           heapMap,
+          classMap,
           templateMap
         );
       }
     } else if (!this.isBaseType(field.type)) {
       //自定义对象
       field.typeDeclare = {};
-      this.dealObject(node, field.typeDeclare, heapMap, templateMap);
+      this.dealObject(node, field.typeDeclare, heapMap, classMap, templateMap);
     }
     const decoratorDsl = Decorator.convertToDsl(node['decorators']);
     if (decoratorDsl) Object.assign(field, decoratorDsl);

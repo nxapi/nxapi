@@ -37,10 +37,6 @@ export default class Controller {
       const classMethodDsl: IClassMethod = {};
       classMethodDsl.classMethodName = n.key['name'];
       const decoratorDsl = Decorator.convertToDsl(n.decorators);
-      //有get|post|put...的才是一个接口
-      // if (!decoratorDsl.get && !decoratorDsl.post && !decoratorDsl.put && !decoratorDsl.delete) return;
-      // cmDsl.path = decoratorDsl.path;
-      // cmDsl.method = cmDsl.path.method.split('.')[1];
       Object.assign(classMethodDsl, decoratorDsl);
       const reqDtoDsl = ReqDto.convertToDsl(n, this.component.getHeapMap());
       classMethodDsl.req = reqDtoDsl.req;
