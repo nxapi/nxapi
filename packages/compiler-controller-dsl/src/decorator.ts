@@ -24,16 +24,16 @@ export default class Decorator {
     const dslObj: any = {};
 
     decoratorArr.forEach((a: any) => {
-      //要求装饰器必须是三个字段组成
-      if (a.propertys.length !== 3) return;
-      const key1 = a.propertys[1];
-      const key2 = a.propertys[0];
-      const dsl = { [key2]: this.getValue(a.args) };
-      // const dsl = this.convertArgToDsl[key1][key2](a.args);
-      // for (const key in dsl) {
-      //   dsl[key] = { val: dsl[key], method: `${key1}.${key2}` };
-      // }
-      Object.assign(dslObj, dsl);
+      const action = a.propertys[0];
+      const dsl = { [action]: this.getValue(a.args) };
+      if (a.propertys.length === 4) {
+        //d.array.string.max(1)
+        if (!dslObj.extraInfo) dslObj.extraInfo = {};
+        Object.assign(dslObj.extraInfo, dsl);
+      } else if (a.propertys.length === 3) {
+        //d.string.max(1)
+        Object.assign(dslObj, dsl);
+      }
     });
     return dslObj;
   }
