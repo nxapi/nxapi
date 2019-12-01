@@ -1,6 +1,6 @@
 {
   "name": "@nxapi/nxapi",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "@nxapi/nxapi",
   "repository": {
     "type": "git",
@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@hapi/joi": "^15.1.1",
-    "@nxapi/nxapi-search-code": "^0.1.0",
+    "@nxapi/nxapi-search-code": "^0.1.1",
     "chokidar": "^3.3.0",
     "jscodeshift": "^0.6.4",
     "reflect-metadata": "^0.1.13"
