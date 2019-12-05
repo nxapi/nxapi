@@ -30,6 +30,7 @@ export interface IField {
   type?: string;
   isArray?: boolean;
   typeDeclare?: IReqDto;
+  extraInfo?: IField;
   required?: boolean;
   pattern?: string;
 }

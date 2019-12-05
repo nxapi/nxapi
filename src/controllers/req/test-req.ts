@@ -5,9 +5,12 @@ class GGG {
 }
 
 export class TestReq {
-  // @d.array.description('ddda')
-  // @d.array.required()
-  // arr: HelloReq[];
+  @d.array.description('ddda')
+  @d.array.required()
+  @d.array.string.description('arr string')
+  @d.array.string.example('hghks')
+  @d.array.string.required()
+  arr: string[];
   // @d.object.required()
   // hello: HelloReq;
 

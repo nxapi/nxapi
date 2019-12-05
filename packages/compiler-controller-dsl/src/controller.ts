@@ -43,6 +43,7 @@ export default class Controller {
       classMethodDsl.dto = reqDtoDsl.dto;
       dsl.classMethods.push(classMethodDsl);
     });
+    console.log(JSON.stringify(dsl));
     return dsl;
   }
 }
