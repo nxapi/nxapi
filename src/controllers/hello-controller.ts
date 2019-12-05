@@ -8,7 +8,7 @@ import BaseResponse from './dto/base-response';
 export default class HelloController extends BaseController {
   @d.function.get('/hello')
   @d.function.description('接口描述')
-  public helloWorld(name: string): string {
-    return 'hello ' + name;
+  public hello(req: TestReq): string {
+    return 'hello';
   }
 }

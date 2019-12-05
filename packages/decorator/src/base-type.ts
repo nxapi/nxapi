@@ -4,7 +4,7 @@ export default class BaseType<T> extends Any {
   example(val: T) {
     return Reflect.metadata(null, null);
   }
-  allow(...rest: T[]) {
+  allow(...rest: any[]) {
     return Reflect.metadata(null, null);
   }
   valid(...rest: T[]) {

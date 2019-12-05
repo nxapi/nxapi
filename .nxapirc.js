@@ -1,5 +1,6 @@
 module.exports = {
-  relativeCtrlPath: 'src/controllers',
-  relativeOutputPath: 'src/__tmp__',
-  plugins: []
+  rootDir: 'src',
+  outputDir: '__tmp__',
+  ctrlDir: 'controllers',
+  plugins: [],
 };
