@@ -10,5 +10,5 @@ export const rootDir = nxapirc.rootDir || 'src';
 export const ctrlDir = nxapirc.ctrlDir || 'controllers';
 export const outputDir = nxapirc.outputDir || '__tmp__';
 export const relativeCtrlPath = path.join(rootDir, ctrlDir);
-export const relativeOutputPath = path.join(rootDir, ctrlDir);
+export const relativeOutputPath = path.join(rootDir, outputDir);
 export const plugins = nxapirc.plugins || [];
