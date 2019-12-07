@@ -3,6 +3,7 @@ import { IReqDto, IField } from './dsl';
 import { IComponent } from '@nxapi/nxapi-search-code';
 import Decorator from './decorator';
 import Ast from './ast';
+import { SystemGenerics } from './system-generics';
 
 export default class ReqDto {
   public static convertToDsl(cm: ClassMethod, heapMap: Map<string, any>) {
@@ -58,7 +59,11 @@ export default class ReqDto {
   ) {
     dsl.fields = [];
     const typeName = node.typeAnnotation.typeAnnotation.typeName.name;
-    const typeNodeInfo = heapMap.get(typeName) || templateMap.get(typeName) || classMap.get(typeName);
+    const typeNodeInfo =
+      heapMap.get(typeName) ||
+      templateMap.get(typeName) ||
+      classMap.get(typeName) ||
+      SystemGenerics.getMap().get(typeName);
     const ownerComponent: IComponent = typeNodeInfo.ownerComponent;
     dsl.fileFullPath = ownerComponent.getFullPath();
     dsl.type = typeName;
@@ -67,7 +72,7 @@ export default class ReqDto {
     const declareTemplate = classDeclareJcs.find(j.TSTypeParameterDeclaration).nodes();
     const refTempate = node.typeAnnotation.typeAnnotation.typeParameters;
     //模板类型向下传递
-    templateMap = this.getTemplateMap(refTempate, declareTemplate[0], heapMap, templateMap);
+    templateMap = this.getTemplateMap(refTempate, declareTemplate[0], heapMap, classMap, templateMap);
     //对象属性处理
     const classPropertyNodes = classDeclareJcs.find(j.ClassProperty).nodes();
     classPropertyNodes.forEach(n => {
@@ -116,12 +121,14 @@ export default class ReqDto {
   //将T替换成具体的类型
   private static replaceTemplateByRealType(refTmp: any, parentTemplateMap: Map<string, any>) {
     if (this.isArrayType(this.getNodeType(this.constructorTypeAnnotation(refTmp)))) {
+      if (this.isBaseTypeOfNode(refTmp.elementType)) return;
       const refTempVal = parentTemplateMap.get(refTmp.elementType.typeName.name);
       if (refTempVal && refTempVal.isTemplate) {
         Object.assign(refTmp, { elementType: refTempVal.typeAnnotation.typeAnnotation });
       }
       this.replaceTypeParamsTemplateByRealType(refTmp.elementType, parentTemplateMap);
     } else {
+      if (this.isBaseTypeOfNode(refTmp)) return;
       const refTempVal = parentTemplateMap.get(refTmp.typeName.name);
       if (refTempVal && refTempVal.isTemplate) {
         Object.assign(refTmp, refTempVal.typeAnnotation.typeAnnotation);
@@ -158,6 +165,7 @@ export default class ReqDto {
     refTempate: any,
     declareTemplate: any,
     heapMap: Map<string, any>,
+    classMap: Map<string, any>,
     parentTemplateMap: Map<string, any>
   ) {
     const retTemplateMap = new Map();
@@ -171,7 +179,7 @@ export default class ReqDto {
       retTemplateMap.set(declareTmp.name, typeAnnotation);
       const tmpTypeNames = this.getRelativeTypeNames(refTmp);
       tmpTypeNames.forEach(name => {
-        const relativeTypeAnnotation = heapMap.get(name) || parentTemplateMap.get(name);
+        const relativeTypeAnnotation = heapMap.get(name) || parentTemplateMap.get(name) || classMap.get(name);
         retTemplateMap.set(name, relativeTypeAnnotation);
       });
     }
@@ -180,7 +188,12 @@ export default class ReqDto {
 
   private static getRelativeTypeNames(node: any) {
     const nodeType = this.getNodeType(this.constructorTypeAnnotation(node));
-    if (this.isArrayType(nodeType)) node = node.elementType;
+    if (this.isBaseType(nodeType)) return [];
+    if (this.isArrayType(nodeType)) {
+      node = node.elementType;
+      if (this.isBaseTypeOfNode(node)) return [];
+    }
+
     const names = [];
     names.push(node.typeName.name);
     if (!node.typeParameters) return names;
@@ -219,5 +232,8 @@ export default class ReqDto {
   }
   private static isArrayType(typeName: string) {
     return typeName === 'array';
+  }
+  private static isBaseTypeOfNode(node: any) {
+    return this.isBaseType(this.getNodeType(this.constructorTypeAnnotation(node)));
   }
 }

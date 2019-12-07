@@ -21,11 +21,15 @@ export class TestReq {
 
   // @d.string.email({ dd: 88 })
   // @d.string.regex(/^[abc]+$/)
-  @d.string.required()
-  @d.string.max(10)
-  @d.string.allow('v1', 'v2')
-  @d.string.error(() => '错误描述')
-  test: string;
+  // @d.string.required()
+  // @d.string.max(10)
+  // @d.string.allow('v1', 'v2')
+  // @d.string.error(() => '错误描述')
+  // test: string;
+
+  map: Map<string, GGG>;
+  // map: { [name: string]: string };
+  arr: Array<GGG>;
 }
 
 export class TestReq2 {
