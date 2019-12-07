@@ -27,9 +27,10 @@ export class TestReq {
   // @d.string.error(() => '错误描述')
   // test: string;
 
-  map: Map<string, GGG>;
+  // map: Map<string, GGG>;
   // map: { [name: string]: string };
   arr: Array<GGG>;
+  arr2: GGG[];
 }
 
 export class TestReq2 {

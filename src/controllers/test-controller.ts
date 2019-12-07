@@ -11,7 +11,7 @@ export default class TestController extends BaseController {
   // public ggg(req: number): BaseResponse<TestDto[]> {
   //   return 'aa' as any;
   // }
-  public ggg(req: TestReq, req2: number): BaseResponse<TestReq2[]> {
+  public ggg(req: Array<TestReq>, req2: number): BaseResponse<Array<TestReq2>> {
     return 'aa' as any;
   }
   // @d.function.post('post')

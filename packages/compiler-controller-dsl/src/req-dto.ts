@@ -16,6 +16,7 @@ export default class ReqDto {
   private static dealReq(params: any[], reqDsl: IReqDto, heapMap: Map<string, any>) {
     if (params.length === 1) {
       const param = params[0];
+      this.genericsArrayToBaseArray(param);
       const paramType = this.getNodeType(param);
       if (this.isArrayType(paramType) || this.isBaseType(paramType)) {
         reqDsl.type = 'params';
@@ -37,6 +38,7 @@ export default class ReqDto {
   ) {
     if (!returnType) return;
     let n: any = { typeAnnotation: returnType };
+    this.genericsArrayToBaseArray(n);
     let nodeType = this.getNodeType(n);
     dtoDsl.isArray = this.isArrayType(nodeType);
     if (dtoDsl.isArray) {
@@ -88,11 +90,13 @@ export default class ReqDto {
     templateMap: Map<string, any> = new Map()
   ) {
     const field: IField = {};
+    this.genericsArrayToBaseArray(node);
     field.name = node.key ? node.key['name'] : node.name;
     field.type = this.getNodeType(node);
     const tmpMapVal = templateMap.get(field.type);
     if (tmpMapVal && tmpMapVal.isTemplate) {
       node = templateMap.get(field.type);
+      this.genericsArrayToBaseArray(node);
       field.type = this.getNodeType(node);
     }
     field.isArray = this.isArrayType(field.type);
@@ -208,6 +212,16 @@ export default class ReqDto {
       typeAnnotation: { typeAnnotation },
       isTemplate,
     };
+  }
+
+  private static genericsArrayToBaseArray(n: any) {
+    const nodeType = this.getNodeType(n);
+    if (nodeType !== 'Array') return;
+    const elementType = n.typeAnnotation.typeAnnotation.typeParameters.params[0];
+    n.typeAnnotation.typeAnnotation.elementType = elementType;
+    n.typeAnnotation.typeAnnotation.type = 'TSArrayType';
+    delete n.typeAnnotation.typeAnnotation.typeName;
+    delete n.typeAnnotation.typeAnnotation.typeParameters;
   }
 
   private static getNodeType(n: any) {
