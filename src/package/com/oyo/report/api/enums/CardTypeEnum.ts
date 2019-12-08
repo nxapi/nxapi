@@ -1,0 +1,13 @@
+export enum CardTypeEnum {
+  SERVICE_PASSPORT = 1,
+  OFFICERS_CERTIFICATE = 2,
+  IDCARD = 3,
+  SOLDIER_CERTIFICATE = 4,
+  HK_MC_PASS = 5,
+  FOREIGN_PASSPORT = 6,
+  OFFICIAL_PASSPORT = 7,
+  DRIVE_LICENCE = 8,
+  TW_PASS = 9,
+  DIPLOMATIC_PASSPORT = 10,
+}
+//generate by interpret-cli dubbo2.js

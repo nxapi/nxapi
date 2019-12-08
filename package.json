@@ -1,7 +1,7 @@
 {
-  "name": "@nxapi/nxapi",
-  "version": "0.1.4",
-  "description": "@nxapi/nxapi",
+  "name": "@nxapi/dxapi",
+  "version": "0.0.1",
+  "description": "@nxapi/dxapi",
   "repository": {
     "type": "git",
     "url": "https://github.com/nxapi/nxapi"
@@ -13,7 +13,7 @@
     "dist"
   ],
   "bin": {
-    "nxapi": "dist/bin/index.js"
+    "dxapi": "dist/bin/index.js"
   },
   "pre-commit": [
     "tslint"

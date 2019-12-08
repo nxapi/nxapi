@@ -3,14 +3,14 @@ import { IReqDto, IField } from './dsl';
 import { IComponent } from '@nxapi/nxapi-search-code';
 import Decorator from './decorator';
 import Ast from './ast';
-import { SystemGenerics } from './system-generics';
+import { SystemType } from './system-type';
 
 export default class ReqDto {
-  public static convertToDsl(cm: ClassMethod, heapMap: Map<string, any>) {
+  public static convertToDsl(cm: any, heapMap: Map<string, any>) {
     const reqDsl: IReqDto = { fields: [] };
     const dtoDsl: IReqDto = {};
-    this.dealReq(cm.params, reqDsl, heapMap);
-    this.dealDto(cm.returnType, dtoDsl, heapMap);
+    this.dealReq(cm.parameters, reqDsl, heapMap);
+    this.dealDto(cm.typeAnnotation, dtoDsl, heapMap);
     return { req: reqDsl, dto: dtoDsl };
   }
   private static dealReq(params: any[], reqDsl: IReqDto, heapMap: Map<string, any>) {
@@ -52,6 +52,7 @@ export default class ReqDto {
       dtoDsl.type = nodeType;
     }
   }
+  private static objDslMap = new Map<string, IReqDto>();
   private static dealObject(
     node: any,
     dsl: IReqDto,
@@ -59,16 +60,29 @@ export default class ReqDto {
     classMap: Map<string, any> = new Map(),
     templateMap: Map<string, any> = new Map()
   ) {
+    if (!node.typeAnnotation.typeAnnotation.typeName) {
+      console.log('dfdf');
+      return;
+    }
     dsl.fields = [];
     const typeName = node.typeAnnotation.typeAnnotation.typeName.name;
     const typeNodeInfo =
-      heapMap.get(typeName) ||
-      templateMap.get(typeName) ||
-      classMap.get(typeName) ||
-      SystemGenerics.getMap().get(typeName);
+      heapMap.get(typeName) || templateMap.get(typeName) || classMap.get(typeName) || SystemType.getMap().get(typeName);
+    if (!typeNodeInfo) {
+      console.error('找不到类型定义：' + typeName);
+      return;
+    }
     const ownerComponent: IComponent = typeNodeInfo.ownerComponent;
     dsl.fileFullPath = ownerComponent.getFullPath();
     dsl.type = typeName;
+    if (!typeNodeInfo.exportNode) {
+      console.error('类型暂时不支持：' + dsl.type);
+      return;
+    }
+    if (this.objDslMap.get(dsl.fileFullPath)) {
+      dsl.fields = this.objDslMap.get(dsl.fileFullPath).fields;
+      return;
+    } else this.objDslMap.set(dsl.fileFullPath, dsl);
     const declareJcs = Ast.astNodeToJcs(typeNodeInfo.exportNode);
     const classDeclareJcs = declareJcs.find(j.ClassDeclaration);
     const declareTemplate = classDeclareJcs.find(j.TSTypeParameterDeclaration).nodes();
@@ -103,6 +117,15 @@ export default class ReqDto {
     if (field.isArray) {
       field.type = this.getNodeType(this.constructorTypeAnnotation(node.typeAnnotation.typeAnnotation['elementType']));
       if (!this.isBaseType(field.type)) {
+        //:todo 之后优化
+        const tmpMapVal = templateMap.get(field.type);
+        if (tmpMapVal && tmpMapVal.isTemplate) {
+          node.typeAnnotation.typeAnnotation['elementType'] = templateMap.get(field.type).typeAnnotation.typeAnnotation;
+          this.genericsArrayToBaseArray(node);
+          field.type = this.getNodeType(
+            this.constructorTypeAnnotation(node.typeAnnotation.typeAnnotation['elementType'])
+          );
+        }
         //自定义对象
         field.typeDeclare = {};
         this.dealObject(
@@ -118,8 +141,6 @@ export default class ReqDto {
       field.typeDeclare = {};
       this.dealObject(node, field.typeDeclare, heapMap, classMap, templateMap);
     }
-    const decoratorDsl = Decorator.convertToDsl(node['decorators']);
-    if (decoratorDsl) Object.assign(field, decoratorDsl);
     dsl.fields.push(field);
   }
   //将T替换成具体的类型
@@ -225,9 +246,22 @@ export default class ReqDto {
   }
 
   private static getNodeType(n: any) {
-    let nodeType: string = n.typeAnnotation.typeAnnotation.type;
+    const node = n.typeAnnotation.typeAnnotation;
+    let nodeType: string = node.type;
     if (nodeType === 'TSArrayType') {
       return 'array';
+    } else if (nodeType === 'TSTypeLiteral' && node.members && node.members.length > 0) {
+      if (!node.members[0].key) {
+        //:todo
+        return 'object';
+        // console.log('ddd');
+      }
+      // bigDecimal
+      if (node.members[0].key.name === 'value') return 'number';
+      else {
+        console.error('位置类型');
+        return 'object';
+      }
     } else if (nodeType !== 'TSTypeReference') {
       //基础类型
       nodeType = nodeType
@@ -235,13 +269,14 @@ export default class ReqDto {
         .replace('Keyword', '')
         .toLowerCase();
     } else {
-      nodeType = n.typeAnnotation.typeAnnotation.typeName.name;
+      nodeType = node.typeName.name;
     }
     return nodeType;
   }
 
   private static isBaseType(typeName: string) {
-    const types = ['number', 'string', 'boolean', 'object', 'Object', 'any'];
+    if (typeName.startsWith('Java')) return true;
+    const types = ['number', 'string', 'boolean', 'object', 'Object', 'any', 'Date'];
     return types.includes(typeName);
   }
   private static isArrayType(typeName: string) {
@@ -250,4 +285,21 @@ export default class ReqDto {
   private static isBaseTypeOfNode(node: any) {
     return this.isBaseType(this.getNodeType(this.constructorTypeAnnotation(node)));
   }
+  // private static isJavaType(typeName: string) {
+  //   const types = [
+  //     'JavaString',
+  //     'JavaBoolean',
+  //     'JavaInteger',
+  //     'JavaShort',
+  //     'JavaByte',
+  //     'JavaLong',
+  //     'JavaDouble',
+  //     'JavaFloat',
+  //     'JavaList',
+  //     'JavaSet',
+  //     'JavaHashMap',
+  //     'JavaMap',
+  //   ];
+  //   return types.includes(typeName);
+  // }
 }

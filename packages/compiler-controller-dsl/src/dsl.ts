@@ -1,17 +1,14 @@
-export interface IController {
+export interface IService {
   fileFullPath?: string;
-  className?: string;
+  dubboInterface?: string;
+  serviceName?: string;
+  serviceAliasName?: string;
   path?: string;
   classMethods?: IClassMethod[];
 }
 
 export interface IClassMethod {
   classMethodName?: string;
-  description?: string;
-  get?: string;
-  post?: string;
-  put?: string;
-  delete?: string;
   req?: IReqDto;
   dto?: IReqDto;
 }
@@ -24,13 +21,9 @@ export interface IReqDto {
 }
 
 export interface IField {
-  description?: string;
-  example?: string;
   name?: string; //字段名称
   type?: string;
+  javaType?: string;
   isArray?: boolean;
   typeDeclare?: IReqDto;
-  extraInfo?: IField;
-  required?: boolean;
-  pattern?: string;
 }
