@@ -45,3 +45,4 @@ dist/**/*
 package-lock.json
 yarn.lock
 .npmrc
+.packages
