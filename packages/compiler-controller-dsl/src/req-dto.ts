@@ -175,7 +175,7 @@ export default class ReqDto {
           Object.assign(item, { elementType: nVal.typeAnnotation.typeAnnotation });
         }
         this.replaceTypeParamsTemplateByRealType(item.elementType, parentTemplateMap);
-      } else {
+      } else if (!this.isBaseType(this.getNodeType(this.constructorTypeAnnotation(n)))) {
         const nVal = parentTemplateMap.get(n.typeName.name);
         if (nVal && nVal.isTemplate) {
           Object.assign(item, nVal.typeAnnotation.typeAnnotation);
