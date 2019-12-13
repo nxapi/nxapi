@@ -1,7 +1,6 @@
 import { Page, IComponent } from '@nxapi/nxapi-search-code';
 import j from 'jscodeshift';
 import { IService, IClassMethod } from './dsl';
-import Decorator from './decorator';
 import ReqDto from './req-dto';
 import { Collection } from 'jscodeshift/src/Collection';
 
@@ -26,9 +25,14 @@ export default class Services {
   private removeTDubboCallResult(n: any) {
     const returnType = n.typeAnnotation.typeAnnotation;
     const upType = returnType.typeParameters.params[0];
-    returnType.type = upType.type;
-    returnType.typeName = upType.typeName;
-    returnType.typeParameters = upType.typeParameters;
+    //将未知的类型当成any处理
+    if (!upType.typeName) {
+      returnType.type = 'any';
+    } else {
+      returnType.type = upType.type;
+      returnType.typeName = upType.typeName;
+      returnType.typeParameters = upType.typeParameters;
+    }
   }
 
   private convertMethods(jcs: Collection<any>, component: IComponent) {

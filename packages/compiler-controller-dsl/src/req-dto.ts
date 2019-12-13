@@ -1,7 +1,6 @@
-import j, { ClassMethod, TSTypeAnnotation, TypeAnnotation, TSTypePredicate, ClassProperty } from 'jscodeshift';
+import j, { TSTypeAnnotation, TypeAnnotation, TSTypePredicate } from 'jscodeshift';
 import { IReqDto, IField } from './dsl';
 import { IComponent } from '@nxapi/nxapi-search-code';
-import Decorator from './decorator';
 import Ast from './ast';
 import { SystemType } from './system-type';
 
@@ -60,18 +59,10 @@ export default class ReqDto {
     classMap: Map<string, any> = new Map(),
     templateMap: Map<string, any> = new Map()
   ) {
-    if (!node.typeAnnotation.typeAnnotation.typeName) {
-      console.log('dfdf');
-      return;
-    }
     dsl.fields = [];
     const typeName = node.typeAnnotation.typeAnnotation.typeName.name;
     const typeNodeInfo =
       heapMap.get(typeName) || templateMap.get(typeName) || classMap.get(typeName) || SystemType.getMap().get(typeName);
-    if (!typeNodeInfo) {
-      console.error('找不到类型定义：' + typeName);
-      return;
-    }
     const ownerComponent: IComponent = typeNodeInfo.ownerComponent;
     dsl.fileFullPath = ownerComponent.getFullPath();
     dsl.type = typeName;
@@ -79,6 +70,7 @@ export default class ReqDto {
       console.error('类型暂时不支持：' + dsl.type);
       return;
     }
+    //:todo
     if (this.objDslMap.get(dsl.fileFullPath)) {
       dsl.fields = this.objDslMap.get(dsl.fileFullPath).fields;
       return;
@@ -107,6 +99,7 @@ export default class ReqDto {
     this.genericsArrayToBaseArray(node);
     field.name = node.key ? node.key['name'] : node.name;
     field.type = this.getNodeType(node);
+    //处理泛型T
     const tmpMapVal = templateMap.get(field.type);
     if (tmpMapVal && tmpMapVal.isTemplate) {
       node = templateMap.get(field.type);
@@ -116,16 +109,16 @@ export default class ReqDto {
     field.isArray = this.isArrayType(field.type);
     if (field.isArray) {
       field.type = this.getNodeType(this.constructorTypeAnnotation(node.typeAnnotation.typeAnnotation['elementType']));
+      //处理泛型数组T[]
+      const tmpMapVal = templateMap.get(field.type);
+      if (tmpMapVal && tmpMapVal.isTemplate) {
+        node.typeAnnotation.typeAnnotation['elementType'] = templateMap.get(field.type).typeAnnotation.typeAnnotation;
+        this.genericsArrayToBaseArray(node);
+        field.type = this.getNodeType(
+          this.constructorTypeAnnotation(node.typeAnnotation.typeAnnotation['elementType'])
+        );
+      }
       if (!this.isBaseType(field.type)) {
-        //:todo 之后优化
-        const tmpMapVal = templateMap.get(field.type);
-        if (tmpMapVal && tmpMapVal.isTemplate) {
-          node.typeAnnotation.typeAnnotation['elementType'] = templateMap.get(field.type).typeAnnotation.typeAnnotation;
-          this.genericsArrayToBaseArray(node);
-          field.type = this.getNodeType(
-            this.constructorTypeAnnotation(node.typeAnnotation.typeAnnotation['elementType'])
-          );
-        }
         //自定义对象
         field.typeDeclare = {};
         this.dealObject(
@@ -251,17 +244,8 @@ export default class ReqDto {
     if (nodeType === 'TSArrayType') {
       return 'array';
     } else if (nodeType === 'TSTypeLiteral' && node.members && node.members.length > 0) {
-      if (!node.members[0].key) {
-        //:todo
-        return 'object';
-        // console.log('ddd');
-      }
-      // bigDecimal
-      if (node.members[0].key.name === 'value') return 'number';
-      else {
-        console.error('位置类型');
-        return 'object';
-      }
+      if (this.isMap(node)) return 'Map';
+      if (this.isBigDecimal(node)) return 'BigDecimal';
     } else if (nodeType !== 'TSTypeReference') {
       //基础类型
       nodeType = nodeType
@@ -276,7 +260,7 @@ export default class ReqDto {
 
   private static isBaseType(typeName: string) {
     if (typeName.startsWith('Java')) return true;
-    const types = ['number', 'string', 'boolean', 'object', 'Object', 'any', 'Date'];
+    const types = ['number', 'string', 'boolean', 'object', 'Object', 'any', 'Date', 'BigDecimal', 'Map'];
     return types.includes(typeName);
   }
   private static isArrayType(typeName: string) {
@@ -284,6 +268,12 @@ export default class ReqDto {
   }
   private static isBaseTypeOfNode(node: any) {
     return this.isBaseType(this.getNodeType(this.constructorTypeAnnotation(node)));
+  }
+  private static isBigDecimal(node: any) {
+    return node.members[0].key && node.members[0].key.name === 'value';
+  }
+  private static isMap(node: any) {
+    return node.members[0] && node.members[0].type === 'TSIndexSignature';
   }
   // private static isJavaType(typeName: string) {
   //   const types = [
