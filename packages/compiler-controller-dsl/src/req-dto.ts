@@ -93,6 +93,7 @@ export default class ReqDto {
     this.genericsArrayToBaseArray(node);
     field.name = node.key ? node.key['name'] : node.name;
     field.type = this.getNodeType(node);
+    //处理泛型数组T
     const tmpMapVal = templateMap.get(field.type);
     if (tmpMapVal && tmpMapVal.isTemplate) {
       node = templateMap.get(field.type);
@@ -102,6 +103,15 @@ export default class ReqDto {
     field.isArray = this.isArrayType(field.type);
     if (field.isArray) {
       field.type = this.getNodeType(this.constructorTypeAnnotation(node.typeAnnotation.typeAnnotation['elementType']));
+      //处理泛型数组T[]
+      const tmpMapVal = templateMap.get(field.type);
+      if (tmpMapVal && tmpMapVal.isTemplate) {
+        node.typeAnnotation.typeAnnotation['elementType'] = templateMap.get(field.type).typeAnnotation.typeAnnotation;
+        this.genericsArrayToBaseArray(node);
+        field.type = this.getNodeType(
+          this.constructorTypeAnnotation(node.typeAnnotation.typeAnnotation['elementType'])
+        );
+      }
       if (!this.isBaseType(field.type)) {
         //自定义对象
         field.typeDeclare = {};
