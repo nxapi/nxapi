@@ -7,7 +7,7 @@ import Ast2 from './compiler-controller-dsl/src/ast';
 export declare type DSLController = IController;
 export declare type DSLReqDto = IReqDto;
 export declare type DSLField = IField;
-export const compilerCtrlToDsl = compiler;
+export const compilerServiceToDsl = compiler;
 
 export const d = decorator;
 export const hashCode = hashcode;

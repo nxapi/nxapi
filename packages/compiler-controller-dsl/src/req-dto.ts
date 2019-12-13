@@ -70,7 +70,7 @@ export default class ReqDto {
       console.error('类型暂时不支持：' + dsl.type);
       return;
     }
-    //:todo
+    //每次解析的object缓存，解决循环引用问题
     if (this.objDslMap.get(dsl.fileFullPath)) {
       dsl.fields = this.objDslMap.get(dsl.fileFullPath).fields;
       return;

@@ -1,23 +1,18 @@
 #!/usr/bin/env node
 import build from './build';
-import watch from './watch';
 const program = require('commander');
 const { version } = require('../../package.json');
 
 program.version(version).usage('<command> [options]');
 
 program
-  .command('watch')
-  .description('watch controller')
-  .action(async () => {
-    watch();
-  });
-
-program
   .command('build')
-  .description('build controller')
+  .option('-s, --source <s>', 'service path')
+  .option('-t, --target <t>', 'output path')
+  .description('build service')
   .action(async () => {
-    build();
+    // console.log(program.path);
+    build(program.source, program.target);
   });
 
 program.arguments('<command>').action(() => {

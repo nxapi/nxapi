@@ -1,5 +1,3 @@
-import build from "../build";
-import watch from "../watch";
+import build from '../build';
 
-build();
-watch();
+build('./src/package', './');

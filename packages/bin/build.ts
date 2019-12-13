@@ -1,11 +1,21 @@
-import { compilerCtrlToDsl } from '../';
-import { relativeCtrlPath, plugins, relativeOutputPath } from './config';
+import path from 'path';
+import fs from 'fs';
+import { compilerServiceToDsl } from '../';
 
-export default () => {
-  const ctrlDsls = compilerCtrlToDsl(relativeCtrlPath);
-  plugins.forEach((plugin: any) => {
-    const pluginIns = typeof plugin === 'string' ? require(plugin) : plugin;
-    if (pluginIns.default) pluginIns.default(ctrlDsls, relativeOutputPath);
-    else pluginIns(ctrlDsls, relativeOutputPath);
+export default (source: string, target: string) => {
+  const controllerDsls = compilerServiceToDsl(source);
+  let cache: any[] = [];
+  const content = JSON.stringify(controllerDsls, (key, value) => {
+    if (typeof value === 'object' && value !== null) {
+      if (cache.indexOf(value) !== -1) {
+        // Circular reference found, discard key
+        return;
+      } // Store value in our collection
+      cache.push(value);
+    }
+    return value;
   });
+  cache = null; // Enable garbage collection
+  const targetPath = path.resolve(process.cwd(), target, 'dsl.json');
+  fs.writeFileSync(path.resolve(targetPath), content, 'utf8');
 };
